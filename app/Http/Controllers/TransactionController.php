@@ -56,9 +56,16 @@ class TransactionController extends Controller
        ]);
 
        if ($validator->fails()) {
-        return response()->json($validator->errors(),
-        HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
+        $error = $validator->errors()->first();
+
+        $response = [
+            'status' => "Failed",
+            'message' => 'Fail Created Transaction',
+            'error'=> $error
+        ];
+        return response()->json($response, HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
        }
+
 
        try {
         $transaction = Transaction::create($request->all());

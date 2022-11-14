@@ -22,11 +22,14 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 // Route::get('/transaction', [TransactionController::class, 'index']);
 // Route::post('/transaction', [TransactionController::class, 'store']);
-Route::post('/transaction/{id}', [TransactionController::class, 'update']);
+// Route::post('/transaction/{id}', [TransactionController::class, 'update']);
 // Route::get('/transaction/{id}', [TransactionController::class, 'show']);
 // Route::delete('/transaction/{id}', [TransactionController::class, 'destroy']);
 
-Route::resource('/transaction', TransactionController::class)->except(['create','edit']);
+// Route::resource('/transaction', TransactionController::class)->except(['create','edit']);
 
+// Resource termasuk method GET, POST, PUT, DELETE
+// Jadi tidak perlu menulis route untuk method GET, POST, PUT, DELETE
+// Except untuk mengecualikan method yang tidak digunakan
 
-
+Route::resource('/transaction', TransactionController::class);

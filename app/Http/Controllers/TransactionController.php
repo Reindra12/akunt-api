@@ -31,15 +31,7 @@ class TransactionController extends Controller
         return response()->json($response, HttpResponse::HTTP_OK);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -93,21 +85,18 @@ class TransactionController extends Controller
      * @param  \App\Models\Transaction  $transaction
      * @return \Illuminate\Http\Response
      */
-    public function show(Transaction $transaction)
+    public function show($id)
     {
-        //
+        $transaction =  Transaction::findOrFail($id);
+        $response = [
+            'status' => 'success',
+            'message'=> 'Detail of Transaction resouce',
+            'error' => null,
+            'data' => $transaction
+        ];
+        return response()->json($response, HttpResponse::HTTP_OK);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Transaction  $transaction
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Transaction $transaction)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
@@ -116,9 +105,45 @@ class TransactionController extends Controller
      * @param  \App\Models\Transaction  $transaction
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Transaction $transaction)
+    public function update(Request $request, $id)
     {
-        //
+        $transaction =  Transaction::findOrFail($id);
+
+        $validator = Validator::make($request->all(),[
+            'title' => ['required'],
+            'amount'=>['required', 'numeric'],
+            'type' => ['required', 'in:expense,revenue']
+           ]);
+
+           if ($validator->fails()) {
+            $error = $validator->errors()->first();
+
+            $response = [
+                'status' => "Failed",
+                'message' => 'Fail Created Transaction',
+                'error'=> $error
+            ];
+            return response()->json($response, HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
+           }
+
+           try {
+            $transaction->update($request->all());
+            $response = [
+                'status' => 'success',
+                'message'=> 'Transaction updated',
+                'error' => null,
+                'data' => $transaction
+            ];
+
+            return response()->json($response, HttpResponse::HTTP_OK);
+           } catch (QueryException $e) {
+            return response()->json([
+                'status' => "Failed",
+                'message' => 'Fail updating Transaction',
+                'error'=> $e->errorInfo
+            ]);
+
+           }
     }
 
     /**
@@ -127,8 +152,26 @@ class TransactionController extends Controller
      * @param  \App\Models\Transaction  $transaction
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Transaction $transaction)
+    public function destroy($id)
     {
-        //
+        $transaction =  Transaction::findOrFail($id);
+
+           try {
+            $transaction->delete();
+            $response = [
+                'status' => 'success',
+                'message'=> 'Transaction deleted',
+                'error' => null,
+            ];
+
+            return response()->json($response, HttpResponse::HTTP_OK);
+           } catch (QueryException $e) {
+
+            return response()->json([
+
+                'error'=>"message". $e->errorInfo
+            ]);
+
+           }
     }
 }

@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
+
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Validator;
 
@@ -108,7 +108,7 @@ class TransactionController extends Controller
     public function update(Request $request, $id)
     {
         $transaction =  Transaction::findOrFail($id);
-
+        // return $request->all();
         $validator = Validator::make($request->all(),[
             'title' => ['required'],
             'amount'=>['required', 'numeric'],
@@ -119,7 +119,7 @@ class TransactionController extends Controller
             $error = $validator->errors()->first();
 
             $response = [
-                'status' => "Failed",
+                'status' => true,
                 'message' => 'Fail Created Transaction',
                 'error'=> $error
             ];
@@ -129,7 +129,7 @@ class TransactionController extends Controller
            try {
             $transaction->update($request->all());
             $response = [
-                'status' => 'success',
+                'status' => true,
                 'message'=> 'Transaction updated',
                 'error' => null,
                 'data' => $transaction
@@ -138,8 +138,8 @@ class TransactionController extends Controller
             return response()->json($response, HttpResponse::HTTP_OK);
            } catch (QueryException $e) {
             return response()->json([
-                'status' => "Failed",
-                'message' => 'Fail updating Transaction',
+                'status' => true,
+                'message' => 'Failed updating Transaction',
                 'error'=> $e->errorInfo
             ]);
 
@@ -159,17 +159,17 @@ class TransactionController extends Controller
            try {
             $transaction->delete();
             $response = [
-                'status' => 'success',
+                'status' => true,
                 'message'=> 'Transaction deleted',
                 'error' => null,
             ];
 
             return response()->json($response, HttpResponse::HTTP_OK);
            } catch (QueryException $e) {
-
             return response()->json([
-
-                'error'=>"message". $e->errorInfo
+                'status' => true,
+                'message'=> $transaction,
+                'error' => null,
             ]);
 
            }

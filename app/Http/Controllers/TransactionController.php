@@ -20,7 +20,15 @@ class TransactionController extends Controller
      */
     public function index()
     {
-        $transaction = Transaction::orderBy('time','DESC')->get();
+        $transaction = Transaction::orderBy('time','DESC')->get()->map(function($trans){
+            return [
+                    'id' => $trans->id,
+                   'title' => $trans->title,
+                   'amount' => $trans->amount,
+                    'time' => $trans->time,
+                    'type' => $trans->type
+            ];
+        });
         $response = [
             'status'=> 'success',
             'message' => 'List transaction order by time',
@@ -87,14 +95,28 @@ class TransactionController extends Controller
      */
     public function show($id)
     {
-        $transaction =  Transaction::findOrFail($id);
-        $response = [
-            'status' => 'success',
-            'message'=> 'Detail of Transaction resouce',
-            'error' => null,
-            'data' => $transaction
-        ];
-        return response()->json($response, HttpResponse::HTTP_OK);
+        $transaction =  Transaction::find($id);
+
+        if ($transaction==null) {
+            $response = [
+                'status' => true,
+                'message'=> "empty",
+                'error' => "ID not found",
+                // 'data' => $transaction
+            ];
+            return response()->json($response,HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
+        }else{
+            $response = [
+                'status' => 'success',
+                'message'=> 'Detail of Transaction resouce',
+                'error' => null,
+                'data' => $transaction
+            ];
+            return response()->json($response, HttpResponse::HTTP_OK);
+        }
+
+
+
     }
 
 
@@ -107,7 +129,7 @@ class TransactionController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $transaction =  Transaction::findOrFail($id);
+        $transaction =  Transaction::find($id);
         // return $request->all();
         $validator = Validator::make($request->all(),[
             'title' => ['required'],
@@ -120,29 +142,28 @@ class TransactionController extends Controller
 
             $response = [
                 'status' => true,
-                'message' => 'Fail Created Transaction',
+                'message' => 'failed to update Transaction',
                 'error'=> $error
             ];
             return response()->json($response, HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
            }
 
-           try {
+
+           if ($transaction==null) {
+            return response()->json([
+                'status' => true,
+                'message' => 'failed to update Transaction',
+                'error'=> 'ID not found'
+            ], HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
+           } else {
             $transaction->update($request->all());
-            $response = [
+
+            return response()->json([
                 'status' => true,
                 'message'=> 'Transaction updated',
                 'error' => null,
                 'data' => $transaction
-            ];
-
-            return response()->json($response, HttpResponse::HTTP_OK);
-           } catch (QueryException $e) {
-            return response()->json([
-                'status' => true,
-                'message' => 'Failed updating Transaction',
-                'error'=> $e->errorInfo
-            ]);
-
+            ], HttpResponse::HTTP_OK);
            }
     }
 
@@ -154,24 +175,23 @@ class TransactionController extends Controller
      */
     public function destroy($id)
     {
-        $transaction =  Transaction::findOrFail($id);
+        $transaction =  Transaction::find($id);
 
-           try {
+        if ($transaction==null) {
+            return response()->json([
+                'status' => true,
+                'message'=> 'failed to delete Transaction',
+                'error' => null,
+            ]);
+        }else{
             $transaction->delete();
-            $response = [
+            return response()->json([
                 'status' => true,
                 'message'=> 'Transaction deleted',
                 'error' => null,
-            ];
+            ], HttpResponse::HTTP_OK);
 
-            return response()->json($response, HttpResponse::HTTP_OK);
-           } catch (QueryException $e) {
-            return response()->json([
-                'status' => true,
-                'message'=> $transaction,
-                'error' => null,
-            ]);
+        }
 
-           }
     }
 }

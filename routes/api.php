@@ -22,7 +22,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 // Route::get('/transaction', [TransactionController::class, 'index']);
 // Route::post('/transaction', [TransactionController::class, 'store']);
-// Route::post('/transaction/{id}', [TransactionController::class, 'update']);
+Route::post('/transaction/{id}', [TransactionController::class, 'update']);
 // Route::get('/transaction/{id}', [TransactionController::class, 'show']);
 // Route::delete('/transaction/{id}', [TransactionController::class, 'destroy']);
 

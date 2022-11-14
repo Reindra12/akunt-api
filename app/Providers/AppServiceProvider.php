@@ -14,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        // If You are using MySQL, you may need to specify a default string length
+        // If You are using WAMP Server, you may need to specify a default string length
         // Schema::defaultStringLength(191);
     }
 

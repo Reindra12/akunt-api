@@ -20,17 +20,26 @@ class TransactionController extends Controller
      */
     public function index()
     {
-        $transaction = Transaction::orderBy('time','DESC')->get()->map(function($trans){
-            return [
+        $transaction = Transaction::join('products', 'products.id', 'transactions.id_product')
+            ->orderBy('transactions.time', 'DESC')
+            ->select(
+                "transactions.*",
+                "products.name"
+            )
+            ->get()
+            ->map(function ($trans) {
+                return [
                     'id' => $trans->id,
-                   'title' => $trans->title,
-                   'amount' => $trans->amount,
+                    'id_product' => $trans->id_product,
+                    'name' => $trans->name,
+                    'title' => $trans->title,
+                    'amount' => $trans->amount,
                     'time' => $trans->time,
                     'type' => $trans->type
-            ];
-        });
+                ];
+            });
         $response = [
-            'status'=> 'success',
+            'status' => 'success',
             'message' => 'List transaction order by time',
             'error' => null,
             'data' => $transaction
@@ -49,42 +58,43 @@ class TransactionController extends Controller
      */
     public function store(Request $request)
     {
-       $validator = Validator::make($request->all(),[
-        'title' => ['required'],
-        'amount'=>['required', 'numeric'],
-        'type' => ['required', 'in:expense,revenue']
-       ]);
-
-       if ($validator->fails()) {
-        $error = $validator->errors()->first();
-
-        $response = [
-            'status' => "Failed",
-            'message' => 'Fail Created Transaction',
-            'error'=> $error
-        ];
-        return response()->json($response, HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
-       }
-
-
-       try {
-        $transaction = Transaction::create($request->all());
-        $response = [
-            'status' => 'success',
-            'message'=> 'OK!',
-            'error' => null,
-            'data' => $transaction
-        ];
-
-        return response()->json($response, HttpResponse::HTTP_ACCEPTED);
-       } catch (QueryException $e) {
-        return response()->json([
-            'status' => "Failed",
-            'message' => 'Fail Created Transaction',
-            'error'=> $e->errorInfo
+        $validator = Validator::make($request->all(), [
+            'id_product' => ['required', 'numeric'],
+            'title' => ['required'],
+            'amount' => ['required', 'numeric'],
+            'type' => ['required', 'in:expense,revenue']
         ]);
 
-       }
+
+        if ($validator->fails()) {
+            $error = $validator->errors()->first();
+
+            $response = [
+                'status' => "Failed",
+                'message' => 'Fail Created Transaction',
+                'error' => $error
+            ];
+            return response()->json($response, HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+
+        try {
+            $transaction = Transaction::create($request->all());
+            $response = [
+                'status' => 'success',
+                'message' => 'OK!',
+                'error' => null,
+                'data' => $transaction
+            ];
+
+            return response()->json($response, HttpResponse::HTTP_ACCEPTED);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => "Failed",
+                'message' => 'Fail Created Transaction',
+                'error' => $e->errorInfo,
+            ], HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
+        }
     }
 
     /**
@@ -95,28 +105,30 @@ class TransactionController extends Controller
      */
     public function show($id)
     {
-        $transaction =  Transaction::find($id);
+        $transaction =  Transaction::join("products", 'products.id', 'transactions.id_product')
+            ->select(
+                "transactions.*",
+                "products.name"
+            )
+            ->where("transactions.id", $id)
+            ->first();
 
-        if ($transaction==null) {
+        if ($transaction == null) {
             $response = [
                 'status' => true,
-                'message'=> "empty",
+                'message' => "empty",
                 'error' => "ID not found",
-                // 'data' => $transaction
             ];
-            return response()->json($response,HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
-        }else{
+            return response()->json($response, HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
+        } else {
             $response = [
                 'status' => 'success',
-                'message'=> 'Detail of Transaction resouce',
+                'message' => 'Detail of Transaction resouce',
                 'error' => null,
                 'data' => $transaction
             ];
             return response()->json($response, HttpResponse::HTTP_OK);
         }
-
-
-
     }
 
 
@@ -131,40 +143,41 @@ class TransactionController extends Controller
     {
         $transaction =  Transaction::find($id);
         // return $request->all();
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
+            'id_product' => ['required', 'numeric', 'exists:products,id'],
             'title' => ['required'],
-            'amount'=>['required', 'numeric'],
+            'amount' => ['required', 'numeric'],
             'type' => ['required', 'in:expense,revenue']
-           ]);
+        ]);
 
-           if ($validator->fails()) {
+        if ($validator->fails()) {
             $error = $validator->errors()->first();
 
             $response = [
                 'status' => true,
                 'message' => 'failed to update Transaction',
-                'error'=> $error
+                'error' => $error
             ];
             return response()->json($response, HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
-           }
+        }
 
 
-           if ($transaction==null) {
+        if ($transaction == null) {
             return response()->json([
                 'status' => true,
                 'message' => 'failed to update Transaction',
-                'error'=> 'ID not found'
+                'error' => 'ID not found'
             ], HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
-           } else {
+        } else {
             $transaction->update($request->all());
 
             return response()->json([
                 'status' => true,
-                'message'=> 'Transaction updated',
+                'message' => 'Transaction updated',
                 'error' => null,
                 'data' => $transaction
             ], HttpResponse::HTTP_OK);
-           }
+        }
     }
 
     /**
@@ -177,21 +190,19 @@ class TransactionController extends Controller
     {
         $transaction =  Transaction::find($id);
 
-        if ($transaction==null) {
+        if ($transaction == null) {
             return response()->json([
                 'status' => true,
-                'message'=> 'failed to delete Transaction',
+                'message' => 'failed to delete Transaction',
                 'error' => null,
             ]);
-        }else{
+        } else {
             $transaction->delete();
             return response()->json([
                 'status' => true,
-                'message'=> 'Transaction deleted',
+                'message' => 'Transaction deleted',
                 'error' => null,
             ], HttpResponse::HTTP_OK);
-
         }
-
     }
 }

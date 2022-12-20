@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TransactionController;
@@ -33,3 +34,4 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 // Except untuk mengecualikan method yang tidak digunakan
 
 Route::resource('/transaction', TransactionController::class);
+Route::resource('/product', ProductController::class);

@@ -14,16 +14,19 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $products = Product::all();
+            $products = Product::getAll($request->cari, $request->limit);
 
             return response()->json([
                 'success' => true,
-                'message' => 'List Data Product',
+                'message' => 'List Data : Products',
                 'error' => null,
-                'data' => $products
+                'data'    => $products['data'] ?? null,
+                'per_page' => (int)$products['per_page'] ?? null,
+                'total_pages' => $products['total_pages'] ?? null,
+                'total_data' => $products['total_data'] ?? null,
             ], Response::HTTP_OK);
         } catch (\Throwable $th) {
             return response()->json([

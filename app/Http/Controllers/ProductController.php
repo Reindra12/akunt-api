@@ -57,15 +57,15 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:100'],
-            'description' => ['required', 'string']
+            'name' => 'required|string',
+            'description' => 'required|string'
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data Tidak Valid',
-                'error' => $validator->errors()->first(),
+                'message' => $validator->errors()->first(),
+                'error' => $validator->errors(),
                 'data' => null
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }

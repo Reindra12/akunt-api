@@ -9,11 +9,12 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $guarded = ['id'];
+    protected $primaryKey = 'id_product';
+    protected $guarded = ['id_product'];
 
     public static function getAll($cari = null, $limit = null)
     {
-        $query = Product::select('id', 'name', 'description');
+        $query = Product::select('id_product', 'name', 'description');
 
         if ($cari) {
             $query->where('name', 'like', "%$cari%");

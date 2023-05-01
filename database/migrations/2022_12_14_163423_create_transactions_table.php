@@ -15,7 +15,7 @@ class CreateTransactionsTable extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreign('id_product')->references('id')->on('products');
+            $table->foreign('id_product')->references('id_product')->on('products');
             $table->foreignId('id_product');
             $table->string('title');
             $table->double('amount');
